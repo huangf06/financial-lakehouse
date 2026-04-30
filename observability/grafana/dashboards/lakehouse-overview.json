@@ -1,0 +1,19 @@
+{
+  "title": "Financial Lakehouse Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Quarantine Records",
+      "targets": [{"expr": "lakehouse_quarantine_records_total"}],
+      "gridPos": {"x": 0, "y": 0, "w": 8, "h": 4}
+    },
+    {
+      "type": "stat",
+      "title": "Gold Bars",
+      "targets": [{"expr": "lakehouse_gold_bars_total"}],
+      "gridPos": {"x": 8, "y": 0, "w": 8, "h": 4}
+    }
+  ]
+}

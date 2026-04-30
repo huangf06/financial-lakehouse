@@ -1,0 +1,7 @@
+services:
+  prometheus:
+    profiles: ["observability"]
+  grafana:
+    profiles: ["observability"]
+  metrics-publisher:
+    profiles: ["observability"]

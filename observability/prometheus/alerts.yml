@@ -1,0 +1,10 @@
+groups:
+  - name: lakehouse
+    rules:
+      - alert: QuarantineRecordsPresent
+        expr: lakehouse_quarantine_records_total > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Quarantine table contains records

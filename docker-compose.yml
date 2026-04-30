@@ -1,0 +1,147 @@
+name: financial-lakehouse
+
+x-common-env: &common-env
+  S3_ENDPOINT: http://minio:9000
+  S3_REGION: us-east-1
+  S3_ACCESS_KEY: minioadmin
+  S3_SECRET_KEY: minioadmin
+  S3_PATH_STYLE: "true"
+  LAKEHOUSE_ROOT: s3a://lakehouse
+  CHECKPOINT_ROOT: s3a://lakehouse-meta/_checkpoints
+
+services:
+  minio:
+    image: minio/minio:RELEASE.2024-10-29T16-01-48Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  minio-init:
+    image: minio/mc:RELEASE.2024-10-29T15-34-59Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "/scripts/minio-init.sh"]
+    volumes:
+      - ./scripts/minio-init.sh:/scripts/minio-init.sh:ro
+
+  spark-master:
+    build:
+      context: .
+      dockerfile: docker/spark/Dockerfile
+    image: financial-lakehouse-spark:dev
+    command: ["/opt/spark/sbin/start-master.sh", "-h", "0.0.0.0"]
+    environment:
+      <<: *common-env
+      SPARK_MASTER: spark://spark-master:7077
+      SPARK_NO_DAEMONIZE: "true"
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    volumes:
+      - ./scripts:/opt/app/scripts:ro
+      - ./pipelines:/opt/app/pipelines:ro
+      - ./jobs:/opt/app/jobs:ro
+
+  spark-worker-1:
+    image: financial-lakehouse-spark:dev
+    depends_on:
+      - spark-master
+    command: ["/opt/spark/sbin/start-worker.sh", "spark://spark-master:7077"]
+    environment:
+      <<: *common-env
+      SPARK_MASTER: spark://spark-master:7077
+      SPARK_NO_DAEMONIZE: "true"
+      SPARK_WORKER_MEMORY: 2G
+      SPARK_WORKER_CORES: 2
+    volumes:
+      - ./pipelines:/opt/app/pipelines:ro
+      - ./jobs:/opt/app/jobs:ro
+
+  spark-worker-2:
+    image: financial-lakehouse-spark:dev
+    depends_on:
+      - spark-master
+    command: ["/opt/spark/sbin/start-worker.sh", "spark://spark-master:7077"]
+    environment:
+      <<: *common-env
+      SPARK_MASTER: spark://spark-master:7077
+      SPARK_NO_DAEMONIZE: "true"
+      SPARK_WORKER_MEMORY: 2G
+      SPARK_WORKER_CORES: 2
+    volumes:
+      - ./pipelines:/opt/app/pipelines:ro
+      - ./jobs:/opt/app/jobs:ro
+
+  spark-bronze:
+    image: financial-lakehouse-spark:dev
+    profiles: ["streaming"]
+    depends_on:
+      - spark-master
+      - spark-worker-1
+      - spark-worker-2
+      - minio-init
+    command: ["/opt/spark/bin/spark-submit", "/opt/app/jobs/bronze_binance_stream.py"]
+    environment:
+      <<: *common-env
+      SPARK_MASTER: spark://spark-master:7077
+      BRONZE_TRIGGER_SECONDS: "30"
+    volumes:
+      - ./pipelines:/opt/app/pipelines:ro
+      - ./jobs:/opt/app/jobs:ro
+
+  producer-binance:
+    build:
+      context: .
+      dockerfile: docker/producer/Dockerfile
+    image: financial-lakehouse-producer:dev
+    command: ["python", "-m", "producers.binance"]
+    environment:
+      <<: *common-env
+      LANDING_ROOT: /landing
+      BINANCE_SYMBOLS: BTCUSDT,ETHUSDT,SOLUSDT
+    volumes:
+      - landing:/landing
+
+  metrics-publisher:
+    build:
+      context: .
+      dockerfile: docker/metrics-publisher/Dockerfile
+    image: financial-lakehouse-metrics:dev
+    environment:
+      <<: *common-env
+    ports:
+      - "9108:9108"
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+
+volumes:
+  minio-data:
+  landing:

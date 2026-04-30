@@ -47,6 +47,6 @@ class QualityFramework:
         return df.withColumn("_quality_failures", array_compact(array(*failure_exprs)))
 
     def split(self, df: DataFrame) -> tuple[DataFrame, DataFrame]:
-        evaluated = self.evaluate(df).cache()
+        evaluated = self.evaluate(df)
         has_error = expr("EXISTS(_quality_failures, x -> x.severity = 'error')")
         return evaluated.filter(~has_error).drop("_quality_failures"), evaluated.filter(has_error)

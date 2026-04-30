@@ -6,21 +6,25 @@ import os
 
 from pyspark.sql import DataFrame, SparkSession
 
+from pipelines.config import Settings, load_settings
 
-def spark_session(app_name: str) -> SparkSession:
+
+def spark_session(app_name: str, settings: Settings | None = None) -> SparkSession:
+    resolved_settings = settings or load_settings()
+    storage = resolved_settings.storage
     return (
         SparkSession.builder.appName(app_name)
-        .master(os.environ.get("SPARK_MASTER", "local[2]"))
+        .master(os.environ.get("SPARK_MASTER", resolved_settings.spark.master))
         .config("spark.sql.shuffle.partitions", os.environ.get("SPARK_SQL_SHUFFLE_PARTITIONS", "4"))
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config(
             "spark.sql.catalog.spark_catalog",
             "org.apache.spark.sql.delta.catalog.DeltaCatalog",
         )
-        .config("spark.hadoop.fs.s3a.endpoint", os.environ.get("S3_ENDPOINT", "http://minio:9000"))
-        .config("spark.hadoop.fs.s3a.access.key", os.environ.get("S3_ACCESS_KEY", "minioadmin"))
-        .config("spark.hadoop.fs.s3a.secret.key", os.environ.get("S3_SECRET_KEY", "minioadmin"))
-        .config("spark.hadoop.fs.s3a.path.style.access", os.environ.get("S3_PATH_STYLE", "true"))
+        .config("spark.hadoop.fs.s3a.endpoint", storage.endpoint or "")
+        .config("spark.hadoop.fs.s3a.access.key", storage.access_key or "")
+        .config("spark.hadoop.fs.s3a.secret.key", storage.secret_key or "")
+        .config("spark.hadoop.fs.s3a.path.style.access", str(storage.path_style_access).lower())
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
         .getOrCreate()
     )

@@ -27,7 +27,7 @@ def normalize_binance_trades(bronze: DataFrame) -> DataFrame:
         (price * quantity).alias("notional"),
         concat(lit("binance:"), col("trade_id").cast("string")).alias("trade_id"),
         (ingest_ts.cast("long") - event_ts.cast("long")).cast("int").alias("late_arrival_sec"),
-        col("_raw_json") if "_raw_json" in bronze.columns else lit(None).alias("_raw_json"),
+        (col("_raw_json") if "_raw_json" in bronze.columns else lit(None)).alias("_raw_json"),
     )
 
 

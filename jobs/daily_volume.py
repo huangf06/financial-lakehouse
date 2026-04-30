@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-import os
-
 from jobs._common import read_delta, spark_session, write_delta
+from pipelines.config import load_settings
 from pipelines.gold.daily_volume import daily_volume_profile
 
 
 def main() -> None:
-    spark = spark_session("daily-volume-profile")
+    settings = load_settings()
+    spark = spark_session("daily-volume-profile", settings)
     write_delta(
-        daily_volume_profile(read_delta(spark, os.environ["SILVER_TRADES_PATH"])),
-        os.environ["GOLD_DAILY_VOLUME_PROFILE_PATH"],
+        daily_volume_profile(read_delta(spark, settings.table_path("silver", "trades"))),
+        settings.table_path("gold", "daily_volume_profile"),
         ["bar_date"],
     )
     spark.stop()

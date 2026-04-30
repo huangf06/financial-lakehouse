@@ -9,6 +9,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from delta import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
 
 
@@ -16,12 +17,17 @@ from pyspark.sql import SparkSession
 def spark() -> Iterator[SparkSession]:
     os.environ["PYSPARK_PYTHON"] = sys.executable
     os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-    spark = (
+    builder = (
         SparkSession.builder.appName("integration-tests")
         .master(os.environ.get("SPARK_MASTER", "local[2]"))
         .config("spark.sql.shuffle.partitions", "4")
-        .getOrCreate()
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config(
+            "spark.sql.catalog.spark_catalog",
+            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+        )
     )
+    spark = configure_spark_with_delta_pip(builder).getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
     yield spark
     spark.stop()

@@ -4,7 +4,7 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates python3-pip && \
     rm -rf /var/lib/apt/lists/*
-RUN pip3 install --no-cache-dir "pyspark==3.5.3" "delta-spark==3.2.0" "pydantic==2.9.*" "pydantic-settings==2.5.*" "boto3==1.35.*"
+RUN pip3 install --no-cache-dir "delta-spark==3.2.0" "pydantic==2.9.*" "pydantic-settings==2.5.*" "boto3==1.35.*"
 
 COPY docker/spark/jars-list.txt /tmp/jars-list.txt
 RUN set -eux; \

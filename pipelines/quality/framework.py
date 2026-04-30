@@ -1,10 +1,10 @@
 """Declarative quality framework."""
+# ruff: noqa: UP035
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Literal
+from typing import Callable, Literal
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql.functions import array, array_compact, expr, lit, struct, when

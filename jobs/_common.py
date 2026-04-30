@@ -34,8 +34,13 @@ def read_delta(spark: SparkSession, path: str) -> DataFrame:
     return spark.read.format("delta").load(path)
 
 
-def write_delta(df: DataFrame, path: str, partition_by: list[str] | None = None) -> None:
-    writer = df.write.format("delta").mode("append").option("mergeSchema", "true")
+def write_delta(
+    df: DataFrame,
+    path: str,
+    partition_by: list[str] | None = None,
+    mode: str = "append",
+) -> None:
+    writer = df.write.format("delta").mode(mode).option("mergeSchema", "true")
     if partition_by:
         writer = writer.partitionBy(*partition_by)
     writer.save(path)

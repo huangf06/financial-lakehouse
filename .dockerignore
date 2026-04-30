@@ -1,0 +1,15 @@
+.git
+.venv
+.bootstrap-uv
+__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+data
+landing
+warehouse
+spark-warehouse
+metastore_db
+benchmarks/raw
+docs/showcase/aws-run-*
+*.log

@@ -8,6 +8,7 @@ __pycache__/
 *.so
 .Python
 .venv/
+.bootstrap-uv/
 venv/
 env/
 *.egg-info/
@@ -27,6 +28,7 @@ coverage.xml
 
 # Spark / Delta runtime
 spark-warehouse/
+warehouse/
 metastore_db/
 derby.log
 checkpoint/

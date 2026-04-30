@@ -1,0 +1,68 @@
+# Claude Code local settings
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+build/
+dist/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# uv
+.uv-cache/
+
+# Spark / Delta runtime
+spark-warehouse/
+metastore_db/
+derby.log
+checkpoint/
+_delta_log/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Docker
+.docker/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars.local
+.terraform.lock.hcl
+
+# Databricks
+.databricks/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+config/profiles/*.local.env
+
+# Local data
+data/
+landing/
+benchmarks/raw/
+docs/showcase/aws-run-*/
+*.log

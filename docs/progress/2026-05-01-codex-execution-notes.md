@@ -43,6 +43,9 @@ Date: 2026-05-01
   - `README.md` now contains a concrete quick start, runtime evidence table, validation commands, and claim-to-evidence map.
   - `CLAUDE.md` status now reflects the implemented local MVP instead of the initial no-code handoff.
   - `make metrics-snapshot` prints a one-shot metrics snapshot from the metrics publisher container.
+- Hardened Airflow DAG evidence:
+  - Maintenance DAGs now use the shared failure callback and retry policy.
+  - DAG tests now verify expected task sets and failure callbacks, not only module imports.
 
 ## Deviations
 
@@ -54,7 +57,7 @@ Date: 2026-05-01
 
 ```text
 .venv/bin/python -m pytest tests/unit tests/dag tests/integration -q
-31 passed in 78.08s
+32 passed in 67.58s
 
 .venv/bin/ruff check .
 All checks passed!

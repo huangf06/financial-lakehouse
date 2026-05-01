@@ -35,7 +35,7 @@ reset: ## Reset local state
 	./scripts/reset_local_state.sh
 
 seed: ## Seed MinIO landing data
-	uv run python scripts/seed_local_data.py
+	PROFILE=compose S3_ENDPOINT=http://localhost:9000 S3_ACCESS_KEY=minioadmin S3_SECRET_KEY=minioadmin LAKEHOUSE_ROOT=s3a://lakehouse CHECKPOINT_ROOT=s3a://lakehouse-meta/_checkpoints uv run python scripts/seed_local_data.py
 
 smoke: ## Run Spark smoke read
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/spark_smoke.py

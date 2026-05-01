@@ -46,6 +46,10 @@ Date: 2026-05-01
 - Hardened Airflow DAG evidence:
   - Maintenance DAGs now use the shared failure callback and retry policy.
   - DAG tests now verify expected task sets and failure callbacks, not only module imports.
+- Aligned remaining local utility scripts with typed settings:
+  - `scripts/spark_smoke.py` now uses `pipelines.config.load_settings()` and the shared `jobs._common.spark_session()` helper instead of raw `os.environ` Spark configuration.
+  - `scripts/seed_local_data.py` now derives S3 credentials, endpoint, bucket, and landing prefix from `Settings`; the `make seed` target supplies the compose profile values for host-side MinIO seeding.
+  - Added focused unit coverage for S3/S3A landing path parsing.
 
 ## Deviations
 
@@ -114,6 +118,24 @@ parsed DAGs: gold_aggregations, optimize_hot, optimize_zorder_nightly, quarantin
 
 Airflow runtime check
 Python 3.11.10; pip show pyspark: not found; imported pyspark.__version__ == 3.5.3
+
+make smoke
+=== SMOKE TEST: read 100 records ===
+
+.venv/bin/python -m pytest tests/unit tests/dag tests/integration -q
+34 passed in 66.02s
+
+.venv/bin/ruff check .
+All checks passed!
+
+.venv/bin/ruff format --check .
+113 files already formatted
+
+.venv/bin/mypy
+Success: no issues found in 63 source files
+
+docker compose config --quiet
+passed
 
 make benchmark-small
 rows=100000 iterations=3

@@ -3,20 +3,31 @@
 from __future__ import annotations
 
 import json
-import os
 import random
 from datetime import UTC, datetime, timedelta
+from urllib.parse import urlparse
 
 import boto3
 
+from pipelines.config import load_settings
+
+
+def _bucket_and_prefix(path: str) -> tuple[str, str]:
+    parsed = urlparse(path)
+    if parsed.scheme not in {"s3", "s3a"} or not parsed.netloc:
+        raise ValueError(f"Expected s3/s3a path, got {path!r}")
+    return parsed.netloc, parsed.path.lstrip("/")
+
 
 def main() -> None:
+    settings = load_settings()
+    storage = settings.storage
     s3 = boto3.client(
         "s3",
-        endpoint_url=os.environ.get("S3_ENDPOINT", "http://localhost:9000"),
-        aws_access_key_id=os.environ.get("S3_ACCESS_KEY", "minioadmin"),
-        aws_secret_access_key=os.environ.get("S3_SECRET_KEY", "minioadmin"),
-        region_name=os.environ.get("S3_REGION", "us-east-1"),
+        endpoint_url=storage.endpoint,
+        aws_access_key_id=storage.access_key,
+        aws_secret_access_key=storage.secret_key,
+        region_name=storage.region,
     )
     now = datetime.now(tz=UTC)
     lines = []
@@ -36,9 +47,10 @@ def main() -> None:
                 }
             )
         )
-    key = f"landing/binance/{now:%Y-%m-%d/%H/%M}/seed-{int(now.timestamp())}.jsonl"
-    s3.put_object(Bucket="lakehouse", Key=key, Body=("\n".join(lines) + "\n").encode())
-    print(f"Seeded s3://lakehouse/{key} with 50 records")
+    bucket, prefix = _bucket_and_prefix(settings.landing_path("binance"))
+    key = f"{prefix}/{now:%Y-%m-%d/%H/%M}/seed-{int(now.timestamp())}.jsonl"
+    s3.put_object(Bucket=bucket, Key=key, Body=("\n".join(lines) + "\n").encode())
+    print(f"Seeded s3://{bucket}/{key} with 50 records")
 
 
 if __name__ == "__main__":

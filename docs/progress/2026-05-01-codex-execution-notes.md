@@ -23,9 +23,15 @@ Date: 2026-05-01
   - Removed redundant `pyspark==3.5.3` installation from the Spark Docker image.
 - Added local runtime evidence beyond the original P0/P2 scope:
   - `make replay-demo` demonstrates one quarantined Bronze row moving into Silver after a replay rule change.
+  - `make silver-once` runs the compose-level Bronze-to-Silver job against the standard Delta paths.
+  - `make silver-count` reports standard Silver trades and quarantine table counts.
   - The Spark image now runs Python 3.11 while preserving Spark 3.5.3 and Delta 3.2.0.
   - The Airflow compose profile starts Postgres, webserver, scheduler, and Spark-backed DAG parsing.
   - The Airflow image copies the Spark 3.5.3 runtime and installs the Spark provider without dependencies, so it does not pull a PySpark 4.x wheel.
+- Replaced remaining P1 placeholder-style integration tests with behavior checks:
+  - Bronze streaming now writes a real annotated Delta table via `bronze_stream_reader` and `write_bronze_stream`.
+  - Airflow Dataset evidence now checks Silver DAG outlets are the Gold DAG inputs.
+  - Z-order evidence now checks the maintenance helper emits the partition-spec Z-order statement through `run_optimize`.
 
 ## Deviations
 
@@ -37,7 +43,7 @@ Date: 2026-05-01
 
 ```text
 .venv/bin/python -m pytest tests/unit tests/dag tests/integration -q
-29 passed in 63.56s
+29 passed in 60.75s
 
 .venv/bin/ruff check .
 All checks passed!
@@ -56,6 +62,13 @@ passed
 
 make bronze-count
 === BRONZE COUNT: 100 records ===
+
+make silver-once
+passed
+
+make silver-count
+=== SILVER TRADES COUNT: 100 records ===
+=== SILVER QUARANTINE COUNT: 0 records ===
 
 make replay-demo
 before: silver=0, quarantine=1

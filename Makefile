@@ -1,4 +1,4 @@
-.PHONY: help install lint format test test-unit test-integration up down logs reset seed smoke bronze-once bronze-count replay-demo airflow-up airflow-dags clean
+.PHONY: help install lint format test test-unit test-integration up down logs reset seed smoke bronze-once bronze-count silver-once silver-count replay-demo airflow-up airflow-dags clean
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -45,6 +45,12 @@ bronze-once: ## Process current Binance landing files into Bronze Delta once
 
 bronze-count: ## Read Bronze Binance Delta and print row count
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/bronze_count.py
+
+silver-once: ## Process Bronze Binance trades into Silver Delta once
+	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/jobs/silver_trades.py
+
+silver-count: ## Read Silver trades/quarantine Delta and print row counts
+	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/silver_count.py
 
 replay-demo: ## Demo quarantine replay moving one row into Silver
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/replay_demo.py

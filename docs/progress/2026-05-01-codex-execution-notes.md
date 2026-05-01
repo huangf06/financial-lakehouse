@@ -27,6 +27,7 @@ Date: 2026-05-01
   - `make silver-count` reports standard Silver trades and quarantine table counts.
   - `make gold-once` builds the trades-derived Gold Delta tables for daily volume and market quality.
   - `make gold-count` reports Gold table counts and sample rows.
+  - The metrics publisher now reads Delta transaction logs in MinIO and publishes real Bronze/Silver/Gold table record gauges.
   - The Spark image now runs Python 3.11 while preserving Spark 3.5.3 and Delta 3.2.0.
   - The Airflow compose profile starts Postgres, webserver, scheduler, and Spark-backed DAG parsing.
   - The Airflow image copies the Spark 3.5.3 runtime and installs the Spark provider without dependencies, so it does not pull a PySpark 4.x wheel.
@@ -49,13 +50,13 @@ Date: 2026-05-01
 
 ```text
 .venv/bin/python -m pytest tests/unit tests/dag tests/integration -q
-29 passed in 84.22s
+31 passed in 62.32s
 
 .venv/bin/ruff check .
 All checks passed!
 
 .venv/bin/ruff format --check .
-110 files already formatted
+111 files already formatted
 
 .venv/bin/mypy
 Success: no issues found in 62 source files
@@ -82,6 +83,16 @@ passed
 make gold-count
 === GOLD DAILY VOLUME COUNT: 3 records ===
 === GOLD MARKET QUALITY COUNT: 3 records ===
+
+docker compose build metrics-publisher
+passed
+
+docker compose run --rm metrics-publisher <one-shot Delta log metric read>
+lakehouse_bronze_binance_records_total=100
+lakehouse_silver_trades_records_total=100
+lakehouse_silver_quarantine_records_total=0
+lakehouse_gold_daily_volume_records_total=3
+lakehouse_gold_market_quality_records_total=3
 
 make replay-demo
 before: silver=0, quarantine=1

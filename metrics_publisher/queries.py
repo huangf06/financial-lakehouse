@@ -1,8 +1,47 @@
-"""Metric query definitions."""
+"""Metric table definitions."""
 
 from __future__ import annotations
 
-METRIC_QUERIES = {
-    "lakehouse_quarantine_records_total": "SELECT count(*) AS value FROM silver.quarantine_trades",
-    "lakehouse_gold_bars_total": "SELECT count(*) AS value FROM gold.bars_1m",
-}
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class DeltaTableMetric:
+    metric_name: str
+    layer: str
+    table: str
+    help_text: str
+
+
+DELTA_TABLE_METRICS = [
+    DeltaTableMetric(
+        metric_name="lakehouse_bronze_binance_records_total",
+        layer="bronze",
+        table="binance_trades",
+        help_text="Active records in the Bronze Binance Delta table",
+    ),
+    DeltaTableMetric(
+        metric_name="lakehouse_silver_trades_records_total",
+        layer="silver",
+        table="trades",
+        help_text="Active records in the Silver trades Delta table",
+    ),
+    DeltaTableMetric(
+        metric_name="lakehouse_silver_quarantine_records_total",
+        layer="silver",
+        table="quarantine_trades",
+        help_text="Active records in the Silver trade quarantine Delta table",
+    ),
+    DeltaTableMetric(
+        metric_name="lakehouse_gold_daily_volume_records_total",
+        layer="gold",
+        table="daily_volume_profile",
+        help_text="Active records in the Gold daily volume profile Delta table",
+    ),
+    DeltaTableMetric(
+        metric_name="lakehouse_gold_market_quality_records_total",
+        layer="gold",
+        table="market_quality",
+        help_text="Active records in the Gold market quality Delta table",
+    ),
+]

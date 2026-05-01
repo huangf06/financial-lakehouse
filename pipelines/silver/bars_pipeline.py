@@ -25,7 +25,7 @@ def normalize_alpaca_bars(bronze: DataFrame) -> DataFrame:
         col("volume").cast("decimal(38,18)").alias("volume"),
         col("vwap").cast("decimal(38,18)").alias("vwap"),
         col("trade_count").cast("long").alias("trade_count"),
-        col("_raw_json") if "_raw_json" in bronze.columns else lit(None).alias("_raw_json"),
+        (col("_raw_json") if "_raw_json" in bronze.columns else lit(None)).alias("_raw_json"),
     )
 
 

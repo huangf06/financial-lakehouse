@@ -12,4 +12,4 @@ except Exception:  # pragma: no cover
 
 silver_trades_ds = Dataset("delta://lakehouse/silver/trades")
 silver_bars_ds = Dataset("delta://lakehouse/silver/bars")
-gold_bars_ds = Dataset("delta://lakehouse/gold/bars")
+gold_bars_5m_ds = Dataset("delta://lakehouse/gold/bars_5m")

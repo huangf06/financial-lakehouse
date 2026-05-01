@@ -64,6 +64,7 @@ Current recorded validation is in
 | Silver quality loop | `make silver-once && make silver-count` | Silver trades has 100 records; trade quarantine has 0 for clean synthetic data |
 | Quarantine replay | `make replay-demo` | One quarantined row moves into Silver after replay rule adjustment |
 | Gold trades-derived tables | `make gold-once && make gold-count` | Daily volume and market quality each contain 3 symbol-level rows |
+| Bars Silver/Gold loop | `make seed-bars && make bronze-bars-once && make silver-bars-once && make gold-bars-5m-once` | Five valid Alpaca bars form one Gold 5m bar; one invalid bar is quarantined |
 | Airflow runtime | `make airflow-up && make airflow-dags` | DAG list includes Silver, Gold, replay, optimize, and vacuum DAGs |
 | Metrics publisher | `docker compose build metrics-publisher && make metrics-snapshot` | Prints real Bronze, Silver, and Gold Delta table counts from MinIO logs |
 | Optimization benchmark | `make benchmark-small` | Updates `benchmarks/results.md` with baseline, compact, and Z-order timings |
@@ -96,10 +97,15 @@ dropped locally, while Auto Loader is the intended true schema-evolution runtime
 
 ```bash
 make seed             # seed 50 synthetic Binance trades into MinIO
+make seed-bars        # seed synthetic Alpaca 1m bars into MinIO
 make bronze-once      # process available landing files into Bronze
+make bronze-bars-once # process Alpaca bar landing files into Bronze
 make silver-once      # process Bronze Binance trades into Silver
+make silver-bars-once # process Bronze Alpaca bars into Silver
 make gold-once        # build trades-derived Gold tables
+make gold-bars-5m-once # build Gold 5m bars table
 make replay-demo      # local quarantine replay demonstration
+make bars-demo        # local Silver bars + Gold 5m demonstration
 make airflow-up       # start local Airflow profile
 make airflow-dags     # list parsed Airflow DAGs
 make metrics-snapshot # print one Prometheus metric snapshot from Delta logs

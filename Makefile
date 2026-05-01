@@ -1,4 +1,4 @@
-.PHONY: help install lint format test test-unit test-integration up down logs reset seed smoke bronze-once bronze-count silver-once silver-count gold-once gold-count replay-demo airflow-up airflow-dags metrics-snapshot benchmark-small clean
+.PHONY: help install lint format test test-unit test-integration up down logs reset seed seed-bars smoke bronze-once bronze-bars-once bronze-count silver-once silver-bars-once silver-count gold-once gold-bars-5m-once gold-count replay-demo bars-demo airflow-up airflow-dags metrics-snapshot benchmark-small clean
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -37,17 +37,26 @@ reset: ## Reset local state
 seed: ## Seed MinIO landing data
 	PROFILE=compose S3_ENDPOINT=http://localhost:9000 S3_ACCESS_KEY=minioadmin S3_SECRET_KEY=minioadmin LAKEHOUSE_ROOT=s3a://lakehouse CHECKPOINT_ROOT=s3a://lakehouse-meta/_checkpoints uv run python scripts/seed_local_data.py
 
+seed-bars: ## Seed MinIO landing data with synthetic Alpaca bars
+	PROFILE=compose S3_ENDPOINT=http://localhost:9000 S3_ACCESS_KEY=minioadmin S3_SECRET_KEY=minioadmin LAKEHOUSE_ROOT=s3a://lakehouse CHECKPOINT_ROOT=s3a://lakehouse-meta/_checkpoints uv run python scripts/seed_alpaca_bars.py
+
 smoke: ## Run Spark smoke read
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/spark_smoke.py
 
 bronze-once: ## Process current Binance landing files into Bronze Delta once
 	docker compose exec -e BRONZE_TRIGGER_AVAILABLE_NOW=true spark-master /opt/spark/bin/spark-submit /opt/app/jobs/bronze_binance_stream.py
 
+bronze-bars-once: ## Process current Alpaca bar landing files into Bronze Delta once
+	docker compose exec -e BRONZE_TRIGGER_AVAILABLE_NOW=true spark-master /opt/spark/bin/spark-submit /opt/app/jobs/bronze_alpaca_bars.py
+
 bronze-count: ## Read Bronze Binance Delta and print row count
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/bronze_count.py
 
 silver-once: ## Process Bronze Binance trades into Silver Delta once
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/jobs/silver_trades.py
+
+silver-bars-once: ## Process Bronze Alpaca bars into Silver Delta once
+	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/jobs/silver_bars.py
 
 silver-count: ## Read Silver trades/quarantine Delta and print row counts
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/silver_count.py
@@ -56,11 +65,17 @@ gold-once: ## Build trades-derived Gold Delta tables once
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/jobs/daily_volume.py
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/jobs/market_quality.py
 
+gold-bars-5m-once: ## Build Gold 5m bars table once
+	docker compose exec -e GOLD_TIMEFRAME=5m spark-master /opt/spark/bin/spark-submit /opt/app/jobs/gold_bars.py
+
 gold-count: ## Read trades-derived Gold Delta tables and print row counts
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/gold_count.py
 
 replay-demo: ## Demo quarantine replay moving one row into Silver
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/replay_demo.py
+
+bars-demo: ## Demo Alpaca bars Silver split and Gold 5m aggregation
+	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/bars_demo.py
 
 airflow-up: ## Bring up local Airflow webserver and scheduler
 	docker compose --profile airflow up -d --build --force-recreate postgres-airflow airflow-init airflow-webserver airflow-scheduler

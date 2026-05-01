@@ -1,4 +1,4 @@
-"""Spark smoke test reading trades-derived Gold Delta tables."""
+"""Spark smoke test reading Gold Delta tables."""
 
 from __future__ import annotations
 
@@ -28,9 +28,11 @@ def main() -> None:
 
     daily_volume_path = settings.table_path("gold", "daily_volume_profile")
     market_quality_path = settings.table_path("gold", "market_quality")
+    bars_5m_path = settings.table_path("gold", "bars_5m")
 
     daily_count = _count_delta(spark, daily_volume_path, "GOLD DAILY VOLUME COUNT")
     market_count = _count_delta(spark, market_quality_path, "GOLD MARKET QUALITY COUNT")
+    bars_5m_count = _count_delta(spark, bars_5m_path, "GOLD BARS 5M COUNT")
 
     if daily_count:
         spark.read.format("delta").load(daily_volume_path).select(
@@ -39,6 +41,10 @@ def main() -> None:
     if market_count:
         spark.read.format("delta").load(market_quality_path).select(
             "metric_hour", "symbol", "trade_count", "late_arrival_pct", "quarantine_pct"
+        ).show(5, truncate=False)
+    if bars_5m_count:
+        spark.read.format("delta").load(bars_5m_path).select(
+            "bar_open_ts", "symbol", "timeframe", "open", "high", "low", "close", "volume"
         ).show(5, truncate=False)
     spark.stop()
 

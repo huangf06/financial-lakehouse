@@ -1,4 +1,4 @@
-"""Spark smoke test reading Silver trades and quarantine Delta tables."""
+"""Spark smoke test reading Silver Delta tables."""
 
 from __future__ import annotations
 
@@ -27,9 +27,15 @@ def main() -> None:
     spark.sparkContext.setLogLevel("WARN")
     silver_path = settings.table_path("silver", "trades")
     quarantine_path = settings.table_path("silver", "quarantine_trades")
+    bars_path = settings.table_path("silver", "bars")
+    bars_quarantine_path = settings.table_path("silver", "quarantine_bars")
 
     silver_count = _count_delta(spark, silver_path, "SILVER TRADES COUNT")
     quarantine_count = _count_delta(spark, quarantine_path, "SILVER QUARANTINE COUNT")
+    bars_count = _count_delta(spark, bars_path, "SILVER BARS COUNT")
+    bars_quarantine_count = _count_delta(
+        spark, bars_quarantine_path, "SILVER BARS QUARANTINE COUNT"
+    )
 
     if silver_count:
         spark.read.format("delta").load(silver_path).select(
@@ -38,6 +44,14 @@ def main() -> None:
     if quarantine_count:
         spark.read.format("delta").load(quarantine_path).select(
             "trade_id", "symbol", "quarantined_date", "_quality_failures"
+        ).show(5, truncate=False)
+    if bars_count:
+        spark.read.format("delta").load(bars_path).select(
+            "bar_open_ts", "symbol", "timeframe", "open", "close", "volume"
+        ).show(5, truncate=False)
+    if bars_quarantine_count:
+        spark.read.format("delta").load(bars_quarantine_path).select(
+            "bar_open_ts", "symbol", "quarantined_date", "_quality_failures"
         ).show(5, truncate=False)
     spark.stop()
 

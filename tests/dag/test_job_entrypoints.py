@@ -8,6 +8,7 @@ import importlib
 def test_job_entrypoints_import() -> None:
     for module in [
         "jobs.bronze_binance_stream",
+        "jobs.bronze_alpaca_bars",
         "jobs.silver_trades",
         "jobs.silver_bars",
         "jobs.gold_bars",

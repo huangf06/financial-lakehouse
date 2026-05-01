@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from dags._common.datasets import silver_bars_ds, silver_trades_ds
+from dags._common.datasets import gold_bars_5m_ds, silver_bars_ds, silver_trades_ds
 from dags.gold_aggregations import gold_aggregations
 from dags.silver_pipeline import silver_pipeline
 
@@ -20,3 +20,12 @@ def test_silver_dag_emits_datasets_consumed_by_gold_dag() -> None:
     assert gold_aggregations.dag_id == "gold_aggregations"
     assert {silver_trades_ds.uri, silver_bars_ds.uri} <= silver_outlets
     assert gold_inputs == {silver_trades_ds.uri, silver_bars_ds.uri}
+    assert gold_bars_5m_ds.uri == "delta://lakehouse/gold/bars_5m"
+
+
+@pytest.mark.integration
+def test_gold_bars_task_publishes_5m_dataset() -> None:
+    gold_bars_task = gold_aggregations.get_task("silver_to_gold_bars")
+
+    assert [outlet.uri for outlet in gold_bars_task.outlets] == [gold_bars_5m_ds.uri]
+    assert gold_bars_task.env_vars == {"GOLD_TIMEFRAME": "5m"}

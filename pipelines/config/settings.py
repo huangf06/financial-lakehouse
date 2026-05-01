@@ -1,9 +1,8 @@
 """Profile-based configuration with strict validation."""
-# ruff: noqa: UP007
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -12,10 +11,10 @@ ProfileName = Literal["compose", "ci", "aws-showcase", "personal-frugal", "datab
 
 
 class StorageConfig(BaseModel):
-    endpoint: Optional[str] = None
+    endpoint: str | None = None
     region: str = "us-east-1"
-    access_key: Optional[str] = None
-    secret_key: Optional[str] = None
+    access_key: str | None = None
+    secret_key: str | None = None
     lakehouse_root: str = Field(..., description="e.g. s3a://lakehouse")
     checkpoint_root: str = Field(..., description="e.g. s3a://lakehouse-meta/_checkpoints")
     path_style_access: bool = True
@@ -32,11 +31,11 @@ class AirflowConfig(BaseModel):
 
 
 class AlertConfig(BaseModel):
-    slack_webhook_url: Optional[str] = None
-    smtp_host: Optional[str] = None
+    slack_webhook_url: str | None = None
+    smtp_host: str | None = None
     smtp_port: int = 587
-    smtp_user: Optional[str] = None
-    smtp_password: Optional[str] = None
+    smtp_user: str | None = None
+    smtp_password: str | None = None
 
 
 class Settings(BaseSettings):

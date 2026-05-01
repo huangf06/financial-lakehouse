@@ -1,10 +1,14 @@
+FROM python:3.11-slim-bullseye AS python-runtime
+
 FROM apache/spark:3.5.3
 
 USER root
+COPY --from=python-runtime /usr/local /usr/local
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates python3-pip && \
+    curl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
-RUN pip3 install --no-cache-dir "delta-spark==3.2.0" "pydantic==2.9.*" "pydantic-settings==2.5.*" "boto3==1.35.*"
+RUN python3.11 -m pip install --no-cache-dir --no-deps "delta-spark==3.2.0" && \
+    python3.11 -m pip install --no-cache-dir "pydantic==2.9.*" "pydantic-settings==2.5.*" "boto3==1.35.*"
 
 COPY docker/spark/jars-list.txt /tmp/jars-list.txt
 RUN set -eux; \
@@ -20,5 +24,8 @@ RUN set -eux; \
 
 COPY pipelines /opt/app/pipelines
 COPY jobs /opt/app/jobs
-ENV PYTHONPATH=/opt/app SPARK_HOME=/opt/spark
+ENV PYTHONPATH=/opt/app:/opt/spark/python:/opt/spark/python/lib/pyspark.zip:/opt/spark/python/lib/py4j-0.10.9.7-src.zip \
+    PYSPARK_DRIVER_PYTHON=/usr/local/bin/python3.11 \
+    PYSPARK_PYTHON=/usr/local/bin/python3.11 \
+    SPARK_HOME=/opt/spark
 USER spark

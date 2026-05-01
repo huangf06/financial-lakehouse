@@ -1,9 +1,8 @@
 """Local quarantine replay evidence using real Delta reads and writes."""
-# ruff: noqa: UP017
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pyspark.sql import Row
 from pyspark.sql.functions import col
@@ -31,7 +30,7 @@ def main() -> None:
     silver_path = settings.table_path("demo", "silver_trades")
     quarantine_path = settings.table_path("demo", "silver_quarantine_trades")
 
-    event_ts = datetime(2026, 4, 30, 12, 0, tzinfo=timezone.utc)
+    event_ts = datetime(2026, 4, 30, 12, 0, tzinfo=UTC)
     bronze = spark.createDataFrame(
         [
             Row(

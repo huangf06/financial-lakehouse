@@ -7,6 +7,10 @@ from pyspark.sql import SparkSession
 from pipelines.schemas.partition_spec import zorder_columns
 
 
+def delta_path_identifier(table_path: str) -> str:
+    return f"delta.`{table_path}`"
+
+
 def optimize_sql(table_identifier: str, layer: str, table: str, where: str | None = None) -> str:
     predicate = f" WHERE {where}" if where else ""
     columns = zorder_columns(layer, table)

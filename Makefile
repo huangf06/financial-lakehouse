@@ -1,4 +1,4 @@
-.PHONY: help install lint format test test-unit test-integration up down logs reset seed smoke bronze-once bronze-count silver-once silver-count gold-once gold-count replay-demo airflow-up airflow-dags benchmark-small clean
+.PHONY: help install lint format test test-unit test-integration up down logs reset seed smoke bronze-once bronze-count silver-once silver-count gold-once gold-count replay-demo airflow-up airflow-dags metrics-snapshot benchmark-small clean
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -67,6 +67,9 @@ airflow-up: ## Bring up local Airflow webserver and scheduler
 
 airflow-dags: ## List parsed Airflow DAGs
 	docker compose --profile airflow run --rm airflow-scheduler airflow dags list
+
+metrics-snapshot: ## Print one metrics snapshot from Delta logs
+	docker compose run --rm metrics-publisher python -m metrics_publisher.snapshot
 
 benchmark-small: ## Run local small Delta optimization benchmark
 	.venv/bin/python benchmarks/run_optimization_benchmark.py --rows 100000 --iterations 3

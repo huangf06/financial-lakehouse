@@ -39,6 +39,10 @@ Date: 2026-05-01
   - `make benchmark-small` generates a 100k-row synthetic Silver trades table.
   - The harness measures the four benchmark queries across baseline, compact, and `ZORDER BY (symbol)` states.
   - `benchmarks/results.md` records the current median timings.
+- Updated handoff-facing docs:
+  - `README.md` now contains a concrete quick start, runtime evidence table, validation commands, and claim-to-evidence map.
+  - `CLAUDE.md` status now reflects the implemented local MVP instead of the initial no-code handoff.
+  - `make metrics-snapshot` prints a one-shot metrics snapshot from the metrics publisher container.
 
 ## Deviations
 
@@ -50,13 +54,13 @@ Date: 2026-05-01
 
 ```text
 .venv/bin/python -m pytest tests/unit tests/dag tests/integration -q
-31 passed in 62.32s
+31 passed in 78.08s
 
 .venv/bin/ruff check .
 All checks passed!
 
 .venv/bin/ruff format --check .
-111 files already formatted
+112 files already formatted
 
 .venv/bin/mypy
 Success: no issues found in 62 source files
@@ -87,7 +91,7 @@ make gold-count
 docker compose build metrics-publisher
 passed
 
-docker compose run --rm metrics-publisher <one-shot Delta log metric read>
+make metrics-snapshot
 lakehouse_bronze_binance_records_total=100
 lakehouse_silver_trades_records_total=100
 lakehouse_silver_quarantine_records_total=0

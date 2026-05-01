@@ -1,6 +1,6 @@
 # Financial Data Lakehouse — Agent Bootstrap
 
-Portfolio data engineering project at `/home/huang/financial-lakehouse/`. Design and implementation plan are committed; **no implementation code exists yet**. New sessions should pick up by reading the plan and executing Phase 1.
+Portfolio data engineering project at `/home/huang/financial-lakehouse/`. Design and implementation plan are committed, and the local MVP now has runnable Bronze, Silver, Gold, Airflow, benchmark, and metrics evidence. New sessions should pick up by reading the current progress notes and continuing from the remaining Plan 1 gaps.
 
 ## Authoritative documents (read before doing anything)
 
@@ -73,11 +73,12 @@ This project is for **deep portfolio learning**, not pure code generation. See `
 - Tests tiered: unit (<30s) / integration (<5min) / DAG static (<10s).
 - Resume claims anchored in README's Evidence Map (§Resume Claims → Evidence). Every claim points to a code path or test.
 
-## Status as of 2026-04-30
+## Status as of 2026-05-01
 
 - ✅ Design committed (commit `e3f9d98`)
 - ✅ Plan 1 (MVP) committed (commit `6a53a39`)
-- ⏳ No implementation code yet
-- ⏳ Phase 1 (Tasks 1–12 — repo foundation + compose stack + smoke test) is the next step
+- ✅ Phase 1 local foundation, compose stack, Bronze/Silver/Gold runtime loops, Airflow compose runtime, local benchmark, and metrics publisher are implemented and committed.
+- ✅ Latest validation is recorded in `docs/progress/2026-05-01-codex-execution-notes.md`.
+- ⏳ Deferred: AWS showcase, Databricks Asset Bundle deployment, Oracle personal-frugal deployment, and live external producer validation.
 
-A new session should start by saying something like: *"Read CLAUDE.md, then execute Plan 1 Phase 1 (Tasks 1–12) using subagent-driven-development."*
+A new session should start by reading `CLAUDE.md`, `docs/progress/2026-05-01-codex-execution-notes.md`, and the current git log before choosing the next remaining Plan 1 gap.

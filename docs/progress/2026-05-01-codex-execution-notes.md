@@ -32,6 +32,10 @@ Date: 2026-05-01
   - Bronze streaming now writes a real annotated Delta table via `bronze_stream_reader` and `write_bronze_stream`.
   - Airflow Dataset evidence now checks Silver DAG outlets are the Gold DAG inputs.
   - Z-order evidence now checks the maintenance helper emits the partition-spec Z-order statement through `run_optimize`.
+- Added a reproducible local Delta optimization benchmark:
+  - `make benchmark-small` generates a 100k-row synthetic Silver trades table.
+  - The harness measures the four benchmark queries across baseline, compact, and `ZORDER BY (symbol)` states.
+  - `benchmarks/results.md` records the current median timings.
 
 ## Deviations
 
@@ -43,7 +47,7 @@ Date: 2026-05-01
 
 ```text
 .venv/bin/python -m pytest tests/unit tests/dag tests/integration -q
-29 passed in 60.75s
+29 passed in 64.52s
 
 .venv/bin/ruff check .
 All checks passed!
@@ -83,4 +87,11 @@ parsed DAGs: gold_aggregations, optimize_hot, optimize_zorder_nightly, quarantin
 
 Airflow runtime check
 Python 3.11.10; pip show pyspark: not found; imported pyspark.__version__ == 3.5.3
+
+make benchmark-small
+rows=100000 iterations=3
+q1_single_symbol_24h.sql: baseline=791.57 ms compact=508.73 ms zorder=477.5 ms
+q2_single_symbol_7d_vwap.sql: baseline=753.28 ms compact=490.54 ms zorder=518.47 ms
+q3_cross_section_1h.sql: baseline=835.0 ms compact=547.57 ms zorder=509.75 ms
+q4_count_by_symbol.sql: baseline=577.84 ms compact=454.77 ms zorder=403.33 ms
 ```

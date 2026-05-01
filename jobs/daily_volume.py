@@ -14,6 +14,7 @@ def main() -> None:
         daily_volume_profile(read_delta(spark, settings.table_path("silver", "trades"))),
         settings.table_path("gold", "daily_volume_profile"),
         ["bar_date"],
+        mode="overwrite",
     )
     spark.stop()
 

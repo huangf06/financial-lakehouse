@@ -14,6 +14,7 @@ def main() -> None:
         market_quality(read_delta(spark, settings.table_path("silver", "trades"))),
         settings.table_path("gold", "market_quality"),
         ["metric_hour"],
+        mode="overwrite",
     )
     spark.stop()
 

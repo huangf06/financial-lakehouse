@@ -25,6 +25,8 @@ Date: 2026-05-01
   - `make replay-demo` demonstrates one quarantined Bronze row moving into Silver after a replay rule change.
   - `make silver-once` runs the compose-level Bronze-to-Silver job against the standard Delta paths.
   - `make silver-count` reports standard Silver trades and quarantine table counts.
+  - `make gold-once` builds the trades-derived Gold Delta tables for daily volume and market quality.
+  - `make gold-count` reports Gold table counts and sample rows.
   - The Spark image now runs Python 3.11 while preserving Spark 3.5.3 and Delta 3.2.0.
   - The Airflow compose profile starts Postgres, webserver, scheduler, and Spark-backed DAG parsing.
   - The Airflow image copies the Spark 3.5.3 runtime and installs the Spark provider without dependencies, so it does not pull a PySpark 4.x wheel.
@@ -47,13 +49,13 @@ Date: 2026-05-01
 
 ```text
 .venv/bin/python -m pytest tests/unit tests/dag tests/integration -q
-29 passed in 64.52s
+29 passed in 84.22s
 
 .venv/bin/ruff check .
 All checks passed!
 
 .venv/bin/ruff format --check .
-108 files already formatted
+110 files already formatted
 
 .venv/bin/mypy
 Success: no issues found in 62 source files
@@ -73,6 +75,13 @@ passed
 make silver-count
 === SILVER TRADES COUNT: 100 records ===
 === SILVER QUARANTINE COUNT: 0 records ===
+
+make gold-once
+passed
+
+make gold-count
+=== GOLD DAILY VOLUME COUNT: 3 records ===
+=== GOLD MARKET QUALITY COUNT: 3 records ===
 
 make replay-demo
 before: silver=0, quarantine=1

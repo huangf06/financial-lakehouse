@@ -21,23 +21,29 @@ Date: 2026-05-01
   - Fixed `_raw_json` alias symmetry in Silver trades.
   - Removed the unowned `cache()` from the quality split path.
   - Removed redundant `pyspark==3.5.3` installation from the Spark Docker image.
+- Added local runtime evidence beyond the original P0/P2 scope:
+  - `make replay-demo` demonstrates one quarantined Bronze row moving into Silver after a replay rule change.
+  - The Spark image now runs Python 3.11 while preserving Spark 3.5.3 and Delta 3.2.0.
+  - The Airflow compose profile starts Postgres, webserver, scheduler, and Spark-backed DAG parsing.
+  - The Airflow image copies the Spark 3.5.3 runtime and installs the Spark provider without dependencies, so it does not pull a PySpark 4.x wheel.
 
 ## Deviations
 
-- The running Spark container uses Python 3.8 even though the project target is Python 3.11. After Settings was wired into the Docker runtime path, Pydantic could not evaluate PEP 604 annotations under that interpreter. I changed the Pydantic settings model fields to `Optional[...]` and added a local Ruff suppression for `UP007` so the current container runtime and Python 3.11 validation both pass. No dependency versions were changed.
 - Unit Spark fixtures were updated to initialize a Delta-capable SparkSession too, because the full pytest command runs unit tests before integration tests and Spark reuses the first session created.
+- Airflow compose was implemented only after the initial P0/P2 execution completed and subsequent user instructions asked to continue. The provider install is intentionally `--no-deps` to keep the runtime on the pinned PySpark 3.5.3 API exposed by the copied Spark distribution.
+- During validation, `make bronze-once` initially waited for resources after Airflow recreated the Spark master while workers were still attached to the old master. I stopped that run, recreated both workers, and reran `make bronze-once` successfully.
 
 ## Final Validation
 
 ```text
 .venv/bin/python -m pytest tests/unit tests/dag tests/integration -q
-29 passed in 37.73s
+29 passed in 63.56s
 
 .venv/bin/ruff check .
 All checks passed!
 
 .venv/bin/ruff format --check .
-107 files already formatted
+108 files already formatted
 
 .venv/bin/mypy
 Success: no issues found in 62 source files
@@ -50,4 +56,18 @@ passed
 
 make bronze-count
 === BRONZE COUNT: 100 records ===
+
+make replay-demo
+before: silver=0, quarantine=1
+after: silver=1, quarantine=0
+replayed_trade_ids=['binance:9001']
+
+make airflow-up
+started postgres-airflow, airflow-init, airflow-webserver, airflow-scheduler
+
+make airflow-dags
+parsed DAGs: gold_aggregations, optimize_hot, optimize_zorder_nightly, quarantine_replay, silver_pipeline, vacuum_nightly
+
+Airflow runtime check
+Python 3.11.10; pip show pyspark: not found; imported pyspark.__version__ == 3.5.3
 ```

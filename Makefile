@@ -1,4 +1,4 @@
-.PHONY: help install lint format test test-unit test-integration up down logs reset seed smoke bronze-once bronze-count replay-demo clean
+.PHONY: help install lint format test test-unit test-integration up down logs reset seed smoke bronze-once bronze-count replay-demo airflow-up airflow-dags clean
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -48,6 +48,12 @@ bronze-count: ## Read Bronze Binance Delta and print row count
 
 replay-demo: ## Demo quarantine replay moving one row into Silver
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/replay_demo.py
+
+airflow-up: ## Bring up local Airflow webserver and scheduler
+	docker compose --profile airflow up -d --build --force-recreate postgres-airflow airflow-init airflow-webserver airflow-scheduler
+
+airflow-dags: ## List parsed Airflow DAGs
+	docker compose --profile airflow run --rm airflow-scheduler airflow dags list
 
 clean: ## Remove caches and build artifacts
 	rm -rf .pytest_cache .mypy_cache .ruff_cache

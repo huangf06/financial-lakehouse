@@ -1,4 +1,4 @@
-.PHONY: help install lint format test test-unit test-integration up down logs reset seed seed-bars smoke bronze-once bronze-bars-once bronze-count silver-once silver-bars-once silver-count gold-once gold-bars-5m-once gold-count replay-demo bars-demo airflow-up airflow-dags metrics-snapshot benchmark-small clean
+.PHONY: help install lint format test test-unit test-integration up down logs reset seed seed-bars smoke bronze-once bronze-bars-once bronze-count silver-once silver-bars-once silver-count gold-once gold-bars-5m-once gold-count replay-demo bars-demo optimize-hot-once optimize-zorder-once vacuum-once airflow-up airflow-dags metrics-snapshot benchmark-small clean
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -76,6 +76,15 @@ replay-demo: ## Demo quarantine replay moving one row into Silver
 
 bars-demo: ## Demo Alpaca bars Silver split and Gold 5m aggregation
 	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/bars_demo.py
+
+optimize-hot-once: ## Compact recent Silver trades partitions once
+	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/jobs/optimize_hot.py
+
+optimize-zorder-once: ## Run Z-order optimize on Silver trades once
+	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/jobs/optimize_zorder.py
+
+vacuum-once: ## Run Delta VACUUM on Silver trades once
+	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/jobs/vacuum.py
 
 airflow-up: ## Bring up local Airflow webserver and scheduler
 	docker compose --profile airflow up -d --build --force-recreate postgres-airflow airflow-init airflow-webserver airflow-scheduler

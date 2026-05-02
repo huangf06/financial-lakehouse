@@ -9,14 +9,14 @@ Portfolio data engineering project at `/home/huang/financial-lakehouse/`. Design
 
 Do not redesign or regenerate these without explicit approval. They were brainstormed across 9 design sections and approved by the user on 2026-04-30.
 
-## Resume bullets being backed (current local-MVP wording)
+## Resume bullets being backed (current deployable-stack wording)
 
 The four bullets the current repository can defend without AWS/Databricks deployment evidence:
 
-1. *Built a local financial data lakehouse with Spark Structured Streaming and Delta Lake, ingesting market-style JSONL feeds from MinIO into Bronze tables with persisted checkpoints and integration tests covering additive schema tolerance and restart recovery.*
-2. *Implemented a declarative data quality framework for Bronze-to-Silver validation, routing malformed records into quarantine tables and demonstrating rule-based replay that recovers corrected records into Silver without hand-editing data.*
-3. *Added Delta Lake maintenance jobs for compaction, Z-order optimization on symbol, and vacuum; benchmarked 100k-row analytical queries to compare baseline, compacted, and Z-ordered table layouts.*
-4. *Orchestrated Silver, Gold, replay, optimization, and vacuum jobs with Airflow DAGs, shared failure callbacks, and Docker Compose services for reproducible local execution and review.*
+1. *Built a deployable financial data lakehouse with Spark Structured Streaming and Delta Lake, landing market-style JSONL feeds in MinIO/S3A and ingesting them into checkpointed Bronze tables with integration tests covering additive schema tolerance and restart recovery.*
+2. *Implemented a declarative data quality framework for Bronze-to-Silver validation across trades and bars, routing malformed records into quarantine tables and demonstrating rule-based replay that recovers corrected records into Silver without hand-editing data.*
+3. *Added Delta Lake maintenance jobs for compaction, Z-order optimization on symbol, and vacuum; benchmarked 100k-row analytical queries to compare baseline, compacted, and Z-ordered table layouts for time-series access patterns.*
+4. *Packaged the lakehouse as a Docker Compose deployment with Airflow DAGs, shared failure callbacks, Prometheus/Grafana observability, deployment checks, and an end-to-end Bronze-to-Gold validation command.*
 
 Do not claim `Databricks/Spark/AWS`, `ensuring zero data loss`, or production readiness until the
 deferred deployment and live-feed evidence exists. See

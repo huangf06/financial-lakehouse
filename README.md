@@ -15,12 +15,14 @@ The current local MVP proves the full Bronze -> Silver -> Gold path on Docker Co
 
 ## Readiness
 
-This repository is ready as a deployable local portfolio stack and reviewer-facing MVP. It is not a
+This repository is ready as a deployable local portfolio stack and reviewer-facing MVP. The
+`make deploy-local && make e2e-local` path has been validated on Docker Compose. It is not a
 hardened internet-facing production market-data platform yet.
 
 Production gaps that remain:
 
-- live Binance/Alpaca producer containers have not been soak-tested against external APIs,
+- live Binance/Alpaca producer containers write to the same MinIO/S3A landing path as Bronze, but
+  they have not been long-running soak-tested against external APIs,
 - cloud deployment profiles for AWS/Databricks/Oracle are deferred,
 - operational controls such as secrets management, backups, access isolation, release promotion,
   and on-call alert routing are not implemented,

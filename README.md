@@ -65,7 +65,7 @@ Current recorded validation is in
 | Quarantine replay | `make replay-demo` | One quarantined row moves into Silver after replay rule adjustment |
 | Gold trades-derived tables | `make gold-once && make gold-count` | Daily volume and market quality each contain 3 symbol-level rows |
 | Bars Silver/Gold loop | `make seed-bars && make bronze-bars-once && make silver-bars-once && make gold-bars-5m-once` | Five valid Alpaca bars form one Gold 5m bar; one invalid bar is quarantined |
-| Delta maintenance jobs | `make optimize-hot-once && make optimize-zorder-once` | Local Spark runs OPTIMIZE against Delta path tables in MinIO |
+| Delta maintenance jobs | `make optimize-hot-once && make optimize-zorder-once && make vacuum-once` | Local Spark runs OPTIMIZE and VACUUM against Delta path tables in MinIO |
 | Airflow runtime | `make airflow-up && make airflow-dags` | DAG list includes Silver, Gold, replay, optimize, and vacuum DAGs |
 | Metrics publisher | `docker compose build metrics-publisher && make metrics-snapshot` | Prints real Bronze, Silver, and Gold Delta table counts from MinIO logs |
 | Optimization benchmark | `make benchmark-small` | Updates `benchmarks/results.md` with baseline, compact, and Z-order timings |

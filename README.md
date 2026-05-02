@@ -122,4 +122,5 @@ make benchmark-small  # run 100k-row local Delta optimization benchmark
 - MVP plan: `docs/superpowers/plans/2026-04-30-financial-lakehouse-mvp.md`
 - Engineering review: `docs/progress/2026-05-01-engineering-review.md`
 - Execution notes: `docs/progress/2026-05-01-codex-execution-notes.md`
+- Current status: `docs/progress/2026-05-02-project-status.md`
 - Benchmark results: `benchmarks/results.md`

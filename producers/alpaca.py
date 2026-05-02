@@ -7,10 +7,11 @@ import logging
 import os
 from contextlib import suppress
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
 from typing import Any
 
 import aiohttp
+
+from producers.base import JsonlWriter, landing_writer_from_env
 
 logger = logging.getLogger(__name__)
 
@@ -46,16 +47,14 @@ class AlpacaBarProducer:
         symbols: list[str],
         api_key: str,
         api_secret: str,
-        landing_root: Path,
+        writer: JsonlWriter | None = None,
         timeframe: str = "1Min",
         poll_interval_seconds: float = 60.0,
         feed: str = "iex",
     ) -> None:
-        from producers.base import AtomicJsonlWriter
-
         self._symbols = symbols
         self._headers = {"APCA-API-KEY-ID": api_key, "APCA-API-SECRET-KEY": api_secret}
-        self._writer = AtomicJsonlWriter(landing_root=landing_root, source="alpaca")
+        self._writer = writer if writer is not None else landing_writer_from_env("alpaca")
         self._timeframe = timeframe
         self._poll_interval = poll_interval_seconds
         self._feed = feed
@@ -109,7 +108,6 @@ def main() -> None:
         symbols=os.environ.get("ALPACA_SYMBOLS", "AAPL,MSFT,SPY").split(","),
         api_key=os.environ["ALPACA_API_KEY"],
         api_secret=os.environ["ALPACA_API_SECRET"],
-        landing_root=Path(os.environ.get("LANDING_ROOT", "/tmp/landing")),
     )
     asyncio.run(producer.run())
 

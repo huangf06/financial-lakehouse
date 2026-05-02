@@ -3,8 +3,8 @@ name: financial-lakehouse
 x-common-env: &common-env
   S3_ENDPOINT: http://minio:9000
   S3_REGION: us-east-1
-  S3_ACCESS_KEY: minioadmin
-  S3_SECRET_KEY: minioadmin
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
   S3_PATH_STYLE: "true"
   LAKEHOUSE_ROOT: s3a://lakehouse
   CHECKPOINT_ROOT: s3a://lakehouse-meta/_checkpoints
@@ -15,7 +15,7 @@ x-airflow-env: &airflow-env
   AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
   AIRFLOW__CORE__LOAD_EXAMPLES: "false"
   AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow:5432/airflow
-  AIRFLOW__WEBSERVER__SECRET_KEY: local-dev-secret
+  AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY:-local-dev-secret}
   AIRFLOW_CONN_SPARK_DEFAULT: spark://spark-master:7077
   SPARK_MASTER: spark://spark-master:7077
 
@@ -24,8 +24,8 @@ services:
     image: minio/minio:RELEASE.2024-10-29T16-01-48Z
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -42,6 +42,9 @@ services:
     depends_on:
       minio:
         condition: service_healthy
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
     entrypoint: ["/bin/sh", "/scripts/minio-init.sh"]
     volumes:
       - ./scripts/minio-init.sh:/scripts/minio-init.sh:ro
@@ -116,13 +119,29 @@ services:
       context: .
       dockerfile: docker/producer/Dockerfile
     image: financial-lakehouse-producer:dev
+    profiles: ["live"]
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
     command: ["python", "-m", "producers.binance"]
     environment:
       <<: *common-env
-      LANDING_ROOT: /landing
+      LANDING_ROOT: s3a://lakehouse/landing
       BINANCE_SYMBOLS: BTCUSDT,ETHUSDT,SOLUSDT
-    volumes:
-      - landing:/landing
+
+  producer-alpaca:
+    image: financial-lakehouse-producer:dev
+    profiles: ["live"]
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    command: ["python", "-m", "producers.alpaca"]
+    environment:
+      <<: *common-env
+      LANDING_ROOT: s3a://lakehouse/landing
+      ALPACA_SYMBOLS: AAPL,MSFT,SPY
+      ALPACA_API_KEY: ${ALPACA_API_KEY:-}
+      ALPACA_API_SECRET: ${ALPACA_API_SECRET:-}
 
   metrics-publisher:
     build:
@@ -145,7 +164,7 @@ services:
   grafana:
     image: grafana/grafana:11.3.0
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
     volumes:
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
@@ -185,7 +204,7 @@ services:
         airflow db migrate
         airflow users create \
           --username admin \
-          --password admin \
+          --password ${AIRFLOW_ADMIN_PASSWORD:-admin} \
           --firstname Local \
           --lastname Admin \
           --role Admin \
@@ -237,5 +256,4 @@ services:
 
 volumes:
   minio-data:
-  landing:
   airflow-db:

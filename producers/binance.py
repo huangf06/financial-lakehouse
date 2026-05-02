@@ -9,10 +9,11 @@ import os
 import signal
 from contextlib import suppress
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 
 import websockets
+
+from producers.base import JsonlWriter, landing_writer_from_env
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +41,9 @@ def normalize_trade_message(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 class BinanceTradeProducer:
-    def __init__(self, symbols: list[str], landing_root: Path) -> None:
-        from producers.base import AtomicJsonlWriter
-
+    def __init__(self, symbols: list[str], writer: JsonlWriter | None = None) -> None:
         self._symbols = [s.lower() for s in symbols]
-        self._writer = AtomicJsonlWriter(landing_root=landing_root, source="binance")
+        self._writer = writer if writer is not None else landing_writer_from_env("binance")
         self._stop = asyncio.Event()
 
     @property
@@ -80,7 +79,6 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO)
     producer = BinanceTradeProducer(
         symbols=os.environ.get("BINANCE_SYMBOLS", "BTCUSDT,ETHUSDT,SOLUSDT").split(","),
-        landing_root=Path(os.environ.get("LANDING_ROOT", "/tmp/landing")),
     )
     loop = asyncio.new_event_loop()
     for sig in (signal.SIGTERM, signal.SIGINT):

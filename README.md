@@ -15,8 +15,8 @@ The current local MVP proves the full Bronze -> Silver -> Gold path on Docker Co
 
 ## Readiness
 
-This repository is ready as a local portfolio demo and reviewer-facing MVP. It is not a
-production-ready market-data platform yet.
+This repository is ready as a deployable local portfolio stack and reviewer-facing MVP. It is not a
+hardened internet-facing production market-data platform yet.
 
 Production gaps that remain:
 
@@ -43,6 +43,21 @@ make silver-once
 make silver-count
 make gold-once
 make gold-count
+```
+
+For deployable local startup:
+
+```bash
+cp .env.example .env
+make validate-release
+make deploy-local
+make e2e-local
+```
+
+Live external producers are available behind an explicit profile after credentials are configured:
+
+```bash
+make deploy-live
 ```
 
 For a continuous Bronze stream instead of a one-shot run:
@@ -140,5 +155,7 @@ make benchmark-small  # run 100k-row local Delta optimization benchmark
 - Engineering review: `docs/progress/2026-05-01-engineering-review.md`
 - Execution notes: `docs/progress/2026-05-01-codex-execution-notes.md`
 - Current status: `docs/progress/2026-05-02-project-status.md`
+- Deployable stack progress: `docs/progress/2026-05-03-deployable-stack.md`
+- Local deployment: `docs/deploy/local-compose.md`
 - Resume bullet review: `docs/resume/bullet-library-review.md`
 - Benchmark results: `benchmarks/results.md`

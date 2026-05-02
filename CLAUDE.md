@@ -80,9 +80,11 @@ This project is for **deep portfolio learning**, not pure code generation. See `
 - ✅ Plan 1 (MVP) committed (commit `6a53a39`)
 - ✅ Phase 1 local foundation, compose stack, Bronze/Silver/Gold runtime loops, Airflow compose runtime, local benchmark, and metrics publisher are implemented and committed.
 - ✅ Latest local status is recorded in `docs/progress/2026-05-02-project-status.md`.
+- ✅ Deployable local stack work is recorded in `docs/progress/2026-05-03-deployable-stack.md`.
 - ✅ Resume bullet wording review is recorded in `docs/resume/bullet-library-review.md`.
-- ⏳ Deferred: AWS showcase, Databricks Asset Bundle deployment, Oracle personal-frugal deployment, and live external producer validation.
+- ✅ Local deployment entrypoints exist: `make deploy-local`, `make e2e-local`, and `make deploy-live`.
+- ⏳ Deferred: AWS showcase, Databricks Asset Bundle deployment, Oracle personal-frugal deployment, and long-running live external producer soak validation.
 
 A new session should start by reading `CLAUDE.md`, `docs/progress/2026-05-02-project-status.md`,
-`docs/resume/bullet-library-review.md`, and the current git log before choosing the next remaining
-Plan 1 gap.
+`docs/progress/2026-05-03-deployable-stack.md`, `docs/resume/bullet-library-review.md`, and the
+current git log before choosing the next remaining Plan 1 gap.

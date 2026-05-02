@@ -1,4 +1,4 @@
-.PHONY: help install lint format test test-unit test-integration up down logs reset seed seed-bars smoke bronze-once bronze-bars-once bronze-count silver-once silver-bars-once silver-count gold-once gold-bars-5m-once gold-count replay-demo bars-demo optimize-hot-once optimize-zorder-once vacuum-once airflow-up airflow-dags metrics-snapshot benchmark-small clean
+.PHONY: help install lint format test test-unit test-integration validate-release deploy-check deploy-check-strict deploy-local deploy-live e2e-local up down logs reset seed seed-bars smoke bronze-once bronze-bars-once bronze-count silver-once silver-bars-once silver-count gold-once gold-bars-5m-once gold-count replay-demo bars-demo optimize-hot-once optimize-zorder-once vacuum-once airflow-up airflow-dags metrics-snapshot benchmark-small clean
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -21,6 +21,37 @@ test-integration: ## Run integration tests
 	uv run pytest tests/integration/ -v -m integration
 
 test: test-unit ## Run unit tests
+
+validate-release: ## Run release validation before deploying
+	.venv/bin/python -m pytest tests/unit tests/dag tests/integration -q
+	.venv/bin/ruff check .
+	.venv/bin/ruff format --check .
+	.venv/bin/mypy
+	docker compose config --quiet
+
+deploy-check: ## Check compose deployment prerequisites
+	.venv/bin/python scripts/deploy_check.py
+
+deploy-check-strict: ## Check deployment prerequisites and reject local-only secrets
+	.venv/bin/python scripts/deploy_check.py --strict
+
+deploy-local: deploy-check ## Start the deployable local stack
+	docker compose up -d --build minio minio-init spark-master spark-worker-1 spark-worker-2 metrics-publisher prometheus grafana
+
+deploy-live: ## Start local stack plus live market data producers
+	.venv/bin/python scripts/deploy_check.py --strict --live
+	docker compose --profile streaming --profile live up -d --build minio minio-init spark-master spark-worker-1 spark-worker-2 spark-bronze producer-binance producer-alpaca metrics-publisher prometheus grafana
+
+e2e-local: ## Run local deployable Bronze -> Silver -> Gold evidence chain
+	$(MAKE) seed
+	$(MAKE) smoke
+	$(MAKE) bronze-once
+	$(MAKE) bronze-count
+	$(MAKE) silver-once
+	$(MAKE) silver-count
+	$(MAKE) gold-once
+	$(MAKE) gold-count
+	$(MAKE) metrics-snapshot
 
 up: ## Bring up local stack
 	docker compose up -d

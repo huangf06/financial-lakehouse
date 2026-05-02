@@ -9,18 +9,19 @@ Portfolio data engineering project at `/home/huang/financial-lakehouse/`. Design
 
 Do not redesign or regenerate these without explicit approval. They were brainstormed across 9 design sections and approved by the user on 2026-04-30.
 
-## Resume bullets being backed (REVISED wording — do not revert)
+## Resume bullets being backed (current local-MVP wording)
 
-The four bullets the project must defend, with deliberate revisions documented in spec §1:
+The four bullets the current repository can defend without AWS/Databricks deployment evidence:
 
-1. *Architected lakehouse on Databricks/Spark processing real-time market feeds via Auto Loader and Structured Streaming; **configured** schema evolution and checkpoint-based fault tolerance, **validated zero data loss with integration tests**.*
-2. *Engineered data quality framework with quarantine-and-replay pattern across Bronze/Silver/Gold; achieved automated recovery without manual intervention.*
-3. *Optimized Delta Lake performance through Z-ordering on high-cardinality columns and automated compaction; designed partition strategy aligned with time-series access patterns.*
-4. *Integrated **Airflow (OSS deployment) and Databricks Jobs (managed deployment)** for dependency-aware orchestration with failure alerting; containerized via Docker for reproducible deployment.*
+1. *Built a local financial data lakehouse with Spark Structured Streaming and Delta Lake, ingesting market-style JSONL feeds from MinIO into Bronze tables with persisted checkpoints and integration tests covering additive schema tolerance and restart recovery.*
+2. *Implemented a declarative data quality framework for Bronze-to-Silver validation, routing malformed records into quarantine tables and demonstrating rule-based replay that recovers corrected records into Silver without hand-editing data.*
+3. *Added Delta Lake maintenance jobs for compaction, Z-order optimization on symbol, and vacuum; benchmarked 100k-row analytical queries to compare baseline, compacted, and Z-ordered table layouts.*
+4. *Orchestrated Silver, Gold, replay, optimization, and vacuum jobs with Airflow DAGs, shared failure callbacks, and Docker Compose services for reproducible local execution and review.*
 
-**Why the wording was softened (do not revert):**
-- Bullet 1: "implemented schema evolution" → "configured + validated". Schema evolution is a platform feature (Auto Loader / Delta `mergeSchema`), not custom-built. The honest claim is configuration + integration test proof.
-- Bullet 4: expanded to name Databricks Jobs explicitly because the Databricks profile uses Jobs (not Airflow on DBX) for orchestration. This is platform-appropriate dual-orchestration, not "replacing Airflow".
+Do not claim `Databricks/Spark/AWS`, `ensuring zero data loss`, or production readiness until the
+deferred deployment and live-feed evidence exists. See
+`docs/resume/bullet-library-review.md` for the external bullet-library recommendation and the
+alternate quality bullet to use if replay is removed.
 
 ## Plan inventory (DO NOT pre-write Plans 2–4)
 
@@ -73,12 +74,15 @@ This project is for **deep portfolio learning**, not pure code generation. See `
 - Tests tiered: unit (<30s) / integration (<5min) / DAG static (<10s).
 - Resume claims anchored in README's Evidence Map (§Resume Claims → Evidence). Every claim points to a code path or test.
 
-## Status as of 2026-05-01
+## Status as of 2026-05-02
 
 - ✅ Design committed (commit `e3f9d98`)
 - ✅ Plan 1 (MVP) committed (commit `6a53a39`)
 - ✅ Phase 1 local foundation, compose stack, Bronze/Silver/Gold runtime loops, Airflow compose runtime, local benchmark, and metrics publisher are implemented and committed.
-- ✅ Latest validation is recorded in `docs/progress/2026-05-01-codex-execution-notes.md`.
+- ✅ Latest local status is recorded in `docs/progress/2026-05-02-project-status.md`.
+- ✅ Resume bullet wording review is recorded in `docs/resume/bullet-library-review.md`.
 - ⏳ Deferred: AWS showcase, Databricks Asset Bundle deployment, Oracle personal-frugal deployment, and live external producer validation.
 
-A new session should start by reading `CLAUDE.md`, `docs/progress/2026-05-01-codex-execution-notes.md`, and the current git log before choosing the next remaining Plan 1 gap.
+A new session should start by reading `CLAUDE.md`, `docs/progress/2026-05-02-project-status.md`,
+`docs/resume/bullet-library-review.md`, and the current git log before choosing the next remaining
+Plan 1 gap.

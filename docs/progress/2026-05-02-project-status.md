@@ -7,6 +7,10 @@ Date: 2026-05-02
 The local MVP is now evidence-backed across the main Bronze -> Silver -> Gold path. The working
 tree is on `main` with no pre-existing uncommitted changes before today's update.
 
+This is ready for portfolio review and local demonstration. It is not production-ready for a
+long-running real market-data service because live external producer validation, cloud deployment,
+secrets management, backup/restore, release promotion, and operational alert routing are deferred.
+
 Completed and recorded capabilities:
 
 - Bronze Structured Streaming from MinIO landing into Delta with checkpoint recovery.
@@ -24,6 +28,8 @@ Completed and recorded capabilities:
   time and landed as atomic JSONL files without leftover `.tmp.*` files.
 - Fixed pytest-asyncio configuration by setting `asyncio_default_fixture_loop_scope = "function"`
   so async tests keep stable behavior under future pytest-asyncio defaults.
+- Added README readiness language and a resume bullet-library review with safer current wording and
+  an alternate quality bullet for a no-replay scope.
 
 ## Validation
 

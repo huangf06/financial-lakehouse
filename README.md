@@ -13,6 +13,23 @@ The current local MVP proves the full Bronze -> Silver -> Gold path on Docker Co
 - Prometheus metrics are populated from Delta transaction logs,
 - a small Delta optimization benchmark records compact and Z-order timings.
 
+## Readiness
+
+This repository is ready as a local portfolio demo and reviewer-facing MVP. It is not a
+production-ready market-data platform yet.
+
+Production gaps that remain:
+
+- live Binance/Alpaca producer containers have not been soak-tested against external APIs,
+- cloud deployment profiles for AWS/Databricks/Oracle are deferred,
+- operational controls such as secrets management, backups, access isolation, release promotion,
+  and on-call alert routing are not implemented,
+- the local stack uses synthetic/replayed data evidence rather than a long-running real-feed SLA.
+
+The replay path is optional for the core lakehouse demo. Removing replay still leaves a defensible
+streaming Bronze -> Silver -> Gold pipeline, but resume wording should then avoid claims about
+automated recovery after quality-rule changes.
+
 ## Quick Start
 
 ```bash
@@ -123,4 +140,5 @@ make benchmark-small  # run 100k-row local Delta optimization benchmark
 - Engineering review: `docs/progress/2026-05-01-engineering-review.md`
 - Execution notes: `docs/progress/2026-05-01-codex-execution-notes.md`
 - Current status: `docs/progress/2026-05-02-project-status.md`
+- Resume bullet review: `docs/resume/bullet-library-review.md`
 - Benchmark results: `benchmarks/results.md`

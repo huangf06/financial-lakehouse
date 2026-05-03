@@ -1,0 +1,9 @@
+{
+  "url": "https://hooks.slack.com/services/T0000/B0000/XXXXXXXXXXXXXXXXXXXXXXXX",
+  "headers": {
+    "Content-type": "application/json"
+  },
+  "body": {
+    "text": "Airflow task failed: silver_pipeline.split_trades"
+  }
+}

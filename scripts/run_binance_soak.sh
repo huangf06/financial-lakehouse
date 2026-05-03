@@ -22,12 +22,15 @@ snapshot() {
     local n="$2"
     {
         echo "=== snapshot $n at $ts ==="
-        echo "--- bronze count ---"
-        make bronze-count 2>&1 || echo "(bronze-count failed)"
         echo "--- metrics snapshot ---"
+        # metrics-publisher reads Delta transaction logs directly via boto3 (no Spark
+        # cluster contention with the running spark-bronze stream). Bronze record count
+        # is captured as the lakehouse_bronze_binance_records_total gauge.
         make metrics-snapshot 2>&1 || echo "(metrics-snapshot failed)"
         echo "--- producer log tail ---"
         docker compose logs --tail 80 producer-binance 2>&1 || echo "(log tail failed)"
+        echo "--- spark-bronze log tail ---"
+        docker compose logs --tail 40 spark-bronze 2>&1 | tail -40 || echo "(log tail failed)"
     } > "$RAW_DIR/snapshot-${n}-${ts}.txt"
 }
 

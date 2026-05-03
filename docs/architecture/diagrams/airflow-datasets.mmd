@@ -1,0 +1,12 @@
+flowchart LR
+    SP[silver_pipeline<br/>schedule: every 15m]
+    GA[gold_aggregations<br/>dataset-triggered]
+    QR[quarantine_replay<br/>manual]
+    OH[optimize_hot<br/>schedule: hourly]
+    OZ[optimize_zorder_nightly<br/>schedule: nightly]
+    VN[vacuum_nightly<br/>schedule: nightly]
+
+    SP -->|silver_trades dataset| GA
+    SP -->|silver_bars dataset| GA
+    OH -.-> VN
+    OZ -.-> VN

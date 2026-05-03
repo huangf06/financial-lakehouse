@@ -1,0 +1,40 @@
+flowchart TB
+    subgraph Storage
+        MIN[MinIO<br/>S3-compatible<br/>:9000/:9001]
+        INIT[minio-init<br/>bucket bootstrap]
+    end
+    subgraph Producers
+        PB[producer-binance]
+        PA[producer-alpaca<br/>profile=live]
+    end
+    subgraph SparkCluster[Spark Standalone]
+        SM[spark-master<br/>:7077/:8080]
+        SW1[spark-worker-1]
+        SW2[spark-worker-2]
+        SBR[spark-bronze<br/>profile=streaming]
+    end
+    subgraph Orchestration
+        PG[(Postgres<br/>Airflow metadata)]
+        AW[airflow-webserver<br/>:8081]
+        AS[airflow-scheduler]
+    end
+    subgraph Observability
+        MP[metrics-publisher<br/>:9100]
+        PROM[Prometheus<br/>:9090]
+        GRAF[Grafana<br/>:3000]
+    end
+
+    PB --> MIN
+    PA --> MIN
+    INIT --> MIN
+    SBR --> SM
+    SM --- SW1
+    SM --- SW2
+    SBR --> MIN
+    AW --> PG
+    AS --> PG
+    AS -.spark-submit.-> SM
+    MP --> MIN
+    PROM --> MP
+    PROM --> SM
+    GRAF --> PROM

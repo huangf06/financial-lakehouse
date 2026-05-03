@@ -1,0 +1,29 @@
+flowchart LR
+    subgraph Producers
+        BIN[producer-binance<br/>WS]
+        ALP[producer-alpaca<br/>REST poll]
+        REP[ReplayProducer<br/>Parquet -&gt; JSONL]
+    end
+    subgraph Landing[MinIO landing/]
+        L1[landing/binance/]
+        L2[landing/alpaca/]
+        L3[landing/replay/binance/]
+    end
+    subgraph Bronze[Bronze Delta]
+        B[Structured Streaming<br/>+ checkpoint]
+    end
+    subgraph Silver[Silver Delta]
+        S[Quality split<br/>valid + quarantine]
+    end
+    subgraph Gold[Gold Delta]
+        G[Daily volume<br/>Market quality<br/>Bars 5m/1h/1d]
+    end
+
+    BIN -->|atomic JSONL| L1
+    ALP -->|atomic JSONL| L2
+    REP -->|atomic JSONL| L3
+    L1 --> B
+    L2 --> B
+    L3 --> B
+    B --> S
+    S --> G

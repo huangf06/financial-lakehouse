@@ -1,5 +1,10 @@
 # Financial Data Lakehouse
 
+[![lint-test](https://github.com/huangf06/financial-lakehouse/actions/workflows/lint-test.yml/badge.svg?branch=main)](https://github.com/huangf06/financial-lakehouse/actions/workflows/lint-test.yml)
+[![dag-validate](https://github.com/huangf06/financial-lakehouse/actions/workflows/dag-validate.yml/badge.svg?branch=main)](https://github.com/huangf06/financial-lakehouse/actions/workflows/dag-validate.yml)
+[![integration-test](https://github.com/huangf06/financial-lakehouse/actions/workflows/integration-test.yml/badge.svg?branch=main)](https://github.com/huangf06/financial-lakehouse/actions/workflows/integration-test.yml)
+[![build-images](https://github.com/huangf06/financial-lakehouse/actions/workflows/build-images.yml/badge.svg?branch=main)](https://github.com/huangf06/financial-lakehouse/actions/workflows/build-images.yml)
+
 Local, resume-defensible financial data lakehouse built around Spark Structured Streaming,
 Delta Lake, Airflow, MinIO, Prometheus, and Grafana.
 
@@ -12,6 +17,40 @@ The current local MVP proves the full Bronze -> Silver -> Gold path on Docker Co
 - Airflow parses the orchestration DAGs against a real local Airflow runtime,
 - Prometheus metrics are populated from Delta transaction logs,
 - a small Delta optimization benchmark records compact and Z-order timings.
+
+End-to-end data flow:
+
+```mermaid
+flowchart LR
+    subgraph Producers
+        BIN[producer-binance<br/>WS]
+        ALP[producer-alpaca<br/>REST poll]
+        REP[ReplayProducer<br/>Parquet -&gt; JSONL]
+    end
+    subgraph Landing[MinIO landing/]
+        L1[landing/binance/]
+        L2[landing/alpaca/]
+        L3[landing/replay/binance/]
+    end
+    subgraph Bronze[Bronze Delta]
+        B[Structured Streaming<br/>+ checkpoint]
+    end
+    subgraph Silver[Silver Delta]
+        S[Quality split<br/>valid + quarantine]
+    end
+    subgraph Gold[Gold Delta]
+        G[Daily volume<br/>Market quality<br/>Bars 5m/1h/1d]
+    end
+
+    BIN -->|atomic JSONL| L1
+    ALP -->|atomic JSONL| L2
+    REP -->|atomic JSONL| L3
+    L1 --> B
+    L2 --> B
+    L3 --> B
+    B --> S
+    S --> G
+```
 
 ## Readiness
 

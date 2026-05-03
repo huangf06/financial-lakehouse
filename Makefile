@@ -1,4 +1,4 @@
-.PHONY: help install lint format test test-unit test-integration validate-release deploy-check deploy-check-strict deploy-local deploy-live e2e-local up down logs reset seed seed-bars smoke bronze-once bronze-bars-once bronze-count silver-once silver-bars-once silver-count gold-once gold-bars-5m-once gold-count replay-demo bars-demo optimize-hot-once optimize-zorder-once vacuum-once airflow-up airflow-dags metrics-snapshot benchmark-small clean
+.PHONY: help install lint format test test-unit test-integration validate-release deploy-check deploy-check-strict deploy-local deploy-live e2e-local up down logs reset seed seed-bars smoke bronze-once bronze-bars-once bronze-count silver-once silver-bars-once silver-count gold-once gold-bars-5m-once gold-count replay-demo bars-demo optimize-hot-once optimize-zorder-once vacuum-once airflow-up airflow-dags metrics-snapshot benchmark-small seed-replay replay-bronze-demo bronze-replay-count soak-binance clean
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -128,6 +128,26 @@ metrics-snapshot: ## Print one metrics snapshot from Delta logs
 
 benchmark-small: ## Run local small Delta optimization benchmark
 	.venv/bin/python benchmarks/run_optimization_benchmark.py --rows 100000 --iterations 3
+
+seed-replay: ## Generate a deterministic replay Parquet (~50 rows) under data/replay/
+	.venv/bin/python scripts/seed_replay_parquet.py
+
+replay-bronze-demo: seed-replay ## End-to-end: replay Parquet -> MinIO landing/replay/binance -> Bronze
+	S3_ENDPOINT=$${S3_ENDPOINT:-http://localhost:9000} \
+	S3_ACCESS_KEY=$${S3_ACCESS_KEY:-minioadmin} \
+	S3_SECRET_KEY=$${S3_SECRET_KEY:-minioadmin} \
+	.venv/bin/python scripts/replay_from_history.py \
+		--source replay/binance \
+		--parquet data/replay/binance_2024-01-01.parquet \
+		--landing-root s3a://lakehouse/landing \
+		--speedup 1000.0
+	docker compose exec -e BRONZE_TRIGGER_AVAILABLE_NOW=true spark-master /opt/spark/bin/spark-submit /opt/app/jobs/bronze_replay_binance.py
+
+bronze-replay-count: ## Print Bronze replay-binance Delta row count
+	docker compose exec spark-master /opt/spark/bin/spark-submit /opt/app/scripts/bronze_replay_count.py
+
+soak-binance: ## Run the 4h Binance public WS soak (writes evidence under docs/showcase/soak/_raw/)
+	bash scripts/run_binance_soak.sh
 
 clean: ## Remove caches and build artifacts
 	rm -rf .pytest_cache .mypy_cache .ruff_cache

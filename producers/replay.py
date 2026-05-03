@@ -3,13 +3,31 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import pyarrow.parquet as pq
 
-from producers.base import AtomicJsonlWriter
+from producers.base import AtomicJsonlWriter, JsonlWriter, S3JsonlWriter
+
+
+def _writer_for(landing_root: str | Path, source: str) -> JsonlWriter:
+    if isinstance(landing_root, str) and landing_root.startswith(("s3://", "s3a://")):
+        parsed = urlparse(landing_root)
+        if not parsed.netloc:
+            raise ValueError(f"Expected s3/s3a URL with bucket, got {landing_root!r}")
+        return S3JsonlWriter(
+            landing_root=landing_root,
+            source=source,
+            endpoint_url=os.environ.get("S3_ENDPOINT"),
+            access_key=os.environ.get("S3_ACCESS_KEY"),
+            secret_key=os.environ.get("S3_SECRET_KEY"),
+            region_name=os.environ.get("S3_REGION", "us-east-1"),
+        )
+    return AtomicJsonlWriter(landing_root=Path(landing_root), source=source)
 
 
 class ReplayProducer:
@@ -17,15 +35,16 @@ class ReplayProducer:
         self,
         source: str,
         parquet_path: Path,
-        landing_root: Path,
+        landing_root: str | Path,
         speedup: float = 1.0,
         timestamp_col: str = "event_time",
+        writer: JsonlWriter | None = None,
     ) -> None:
         self._source = source
         self._parquet_path = Path(parquet_path)
         self._timestamp_col = timestamp_col
         self._speedup = speedup
-        self._writer = AtomicJsonlWriter(landing_root=landing_root, source=source)
+        self._writer = writer if writer is not None else _writer_for(landing_root, source)
 
     @staticmethod
     def _row_to_dict(row: dict[str, Any]) -> dict[str, Any]:

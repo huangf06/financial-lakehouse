@@ -67,4 +67,5 @@ data/
 landing/
 benchmarks/raw/
 docs/showcase/aws-run-*/
+docs/showcase/soak/_raw/
 *.log

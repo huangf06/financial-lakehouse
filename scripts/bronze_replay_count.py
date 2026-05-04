@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from py4j.protocol import Py4JJavaError
+from pyspark.errors.exceptions.captured import AnalysisException
 
 from jobs._common import spark_session
 from pipelines.config import load_settings
@@ -16,8 +17,13 @@ def main() -> None:
     try:
         df = spark.read.format("delta").load(path)
         print(f"=== BRONZE REPLAY COUNT: {df.count()} records ===")
-    except Py4JJavaError as exc:
-        if "DELTA_TABLE_NOT_FOUND" in str(exc) or "Path does not exist" in str(exc):
+    except (Py4JJavaError, AnalysisException) as exc:
+        message = str(exc)
+        if (
+            "DELTA_TABLE_NOT_FOUND" in message
+            or "PATH_NOT_FOUND" in message
+            or "Path does not exist" in message
+        ):
             print("=== BRONZE REPLAY COUNT: table not found ===")
         else:
             raise

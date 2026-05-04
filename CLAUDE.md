@@ -74,17 +74,33 @@ This project is for **deep portfolio learning**, not pure code generation. See `
 - Tests tiered: unit (<30s) / integration (<5min) / DAG static (<10s).
 - Resume claims anchored in README's Evidence Map (§Resume Claims → Evidence). Every claim points to a code path or test.
 
-## Status as of 2026-05-02
+## Status as of 2026-05-04
 
-- ✅ Design committed (commit `e3f9d98`)
-- ✅ Plan 1 (MVP) committed (commit `6a53a39`)
-- ✅ Phase 1 local foundation, compose stack, Bronze/Silver/Gold runtime loops, Airflow compose runtime, local benchmark, and metrics publisher are implemented and committed.
-- ✅ Latest local status is recorded in `docs/progress/2026-05-02-project-status.md`.
-- ✅ Deployable local stack work is recorded in `docs/progress/2026-05-03-deployable-stack.md`.
-- ✅ Resume bullet wording review is recorded in `docs/resume/bullet-library-review.md`.
-- ✅ Local deployment entrypoints exist: `make deploy-local`, `make e2e-local`, and `make deploy-live`.
-- ⏳ Deferred: AWS showcase, Databricks Asset Bundle deployment, Oracle personal-frugal deployment, and long-running live external producer soak validation.
+- ✅ Plan 1 (MVP, Tasks 1-45) **Done** after the closeout sub-spec landed:
+  - Mermaid architecture diagrams committed under `docs/architecture/diagrams/` and
+    embedded in `README.md` and `docs/architecture/overview.md` (closes Task 44).
+  - Four GHA workflow badges (lint-test, dag-validate, integration-test, build-images)
+    green on `main`; benchmark-small dropped from per-push trigger to manual dispatch
+    (closes Tasks 40-42).
+  - Slack failure-callback unit test in CI (`tests/unit/test_callbacks.py`); captured
+    POST body in `docs/showcase/slack/airflow-failure-example.json`; visual screenshot
+    capture documented in `docs/showcase/slack/README.md` (closes Task 39).
+  - Compose-level historical replay end-to-end demo wired through `make
+    replay-bronze-demo` (replay Parquet → MinIO → Bronze Delta) with
+    `tests/integration/test_replay_compose.py` covering the chain on local fs;
+    captured run evidence in `docs/showcase/replay/`.
+  - 4-hour Binance public-WS soak with continuous Bronze ingest captured in
+    `docs/showcase/soak/2026-05-03-binance-soak.md` (+431,106 records over 3h 54min,
+    monotonic Bronze growth, no producer/stream restarts observed).
+- ✅ Sub-spec design and plan: `docs/superpowers/specs/2026-05-03-plan1-closeout-design.md`
+  and `docs/superpowers/plans/2026-05-03-plan1-closeout.md`.
+- ✅ Resume bullet 1 wording can drop the "no live soak" caveat — soak evidence exists.
+- ⏳ Deferred: AWS showcase (Plan 2), Databricks Asset Bundle deployment (Plan 3),
+  Oracle personal-frugal deployment (Plan 4), GHCR image push + docker compose pull
+  switch (own sub-spec).
 
-A new session should start by reading `CLAUDE.md`, `docs/progress/2026-05-02-project-status.md`,
-`docs/progress/2026-05-03-deployable-stack.md`, `docs/resume/bullet-library-review.md`, and the
-current git log before choosing the next remaining Plan 1 gap.
+A new session should start by reading `CLAUDE.md`, `docs/showcase/soak/2026-05-03-binance-soak.md`,
+`docs/superpowers/specs/2026-05-03-plan1-closeout-design.md`,
+`docs/resume/bullet-library-review.md`, and the current git log. Plan 1 is done; the
+recommended next step is to start brainstorming Plan 3 (Databricks Asset Bundle, Free
+Edition) since it is $0 and restores the `Databricks` keyword in the resume title.

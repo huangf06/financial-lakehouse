@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from py4j.protocol import Py4JJavaError
+from pyspark.errors.exceptions.captured import AnalysisException
 from pyspark.sql import SparkSession
 
 from jobs._common import spark_session
@@ -12,8 +13,13 @@ from pipelines.config import load_settings
 def _count_delta(spark: SparkSession, path: str, label: str) -> int:
     try:
         count = spark.read.format("delta").load(path).count()
-    except Py4JJavaError as exc:
-        if "DELTA_TABLE_NOT_FOUND" not in str(exc) and "Path does not exist" not in str(exc):
+    except (Py4JJavaError, AnalysisException) as exc:
+        message = str(exc)
+        if (
+            "DELTA_TABLE_NOT_FOUND" not in message
+            and "PATH_NOT_FOUND" not in message
+            and "Path does not exist" not in message
+        ):
             raise
         print(f"=== {label}: table not found ===")
         return 0
